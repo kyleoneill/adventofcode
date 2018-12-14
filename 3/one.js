@@ -3,6 +3,7 @@ var input = (fs.readFileSync('./3/input.txt', 'utf8')).split('\n')
 
 var overlapInches = 0
 var fabricSheet = {}
+var poisonedClaims = []
 
 function main() {
     //draw the fabric sheet
@@ -14,18 +15,19 @@ function main() {
         claim.size = splitSpace[3]
         draw(claim)
     })
-    for (line in fabricSheet) {
-        if(fabricSheet[line].indexOf("x") > -1) {
+    //check fabric sheet
+    for (inch in fabricSheet) {
+        if(fabricSheet[inch].indexOf("x") > -1) {
             overlapInches++
         }
     }
-    console.log(`Answer: ${overlapInches}`)
+    // 1273 too high
+    console.log(`Inches of Overlap: ${overlapInches}\nOverlap Free Claim ID: ${overlapFreeID}`)
 }
 
 function draw(claim) {
     var positions = claim.position.split(',')
     var size = claim.size.split('x')
-    //var squareSizage = size[0]*size[1]
     for(var i = 0; i < parseInt(size[0]); i++) {
         for(var j = 0; j < parseInt(size[1]); j++) {
             var xPos = parseInt(positions[0]) + i
@@ -36,6 +38,7 @@ function draw(claim) {
             }
             else {
                 fabricSheet[coord] = "x"
+                poisonedClaims.push(claim.id)
             }
         }
     }
