@@ -30,8 +30,6 @@ function main() {
             break
         }
     }
-    // 1273 too high
-    //26 wrong
     console.log(`Inches of Overlap: ${overlapInches}\nOverlap Free Claim ID: ${overlapFreeID}`)
 }
 
