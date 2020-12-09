@@ -13,29 +13,36 @@ fn main() {
     println!("The solution is {}", solution);
 }
 
+fn add_smallest_largest(input: &Vec<u64>, start: usize, end: usize) -> u64 {
+    let mut smallest = input[start];
+    let mut largest = input[start];
+    for n in start..end {
+        if input[n] > largest {
+            largest = input[n];
+        }
+        if input[n] < smallest {
+            smallest = input[n];
+        }
+    }
+    largest + smallest
+}
+
 fn solve(input: Vec<u64>) -> Result<u64, &'static str> {
     let invalid_number = get_invalid_number(&input).unwrap();
-    for n in 0..input.len() - 1 {
-        if input[n] == invalid_number {
-            continue;
+    let mut range_start = 0;
+    let mut range_end = 1;
+    let mut sum = input[range_start];
+    while range_end < input.len() {
+        if sum == invalid_number {
+            return Ok(add_smallest_largest(&input, range_start, range_end));
         }
-        let mut smallest = input[n];
-        let mut largest = input[n];
-        let mut sum = input[n];
-        for i in n + 1 .. input.len() {
-            if input[i] > largest {
-                largest = input[i];
-            }
-            if input[i] < smallest {
-                smallest = input[i];
-            }
-            sum += input[i];
-            if sum == invalid_number {
-                return  Ok(smallest + largest);
-            }
-            if sum > invalid_number {
-                break;
-            }
+        if sum < invalid_number {
+            sum += input[range_end];
+            range_end += 1;
+        }
+        if sum > invalid_number {
+            sum -= input[range_start];
+            range_start += 1;
         }
     }
     Err("Failed to find a solution")
