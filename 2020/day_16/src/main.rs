@@ -3,6 +3,26 @@ use std::fs;
 use std::io::BufRead;
 use std::ops::Range;
 
+// use std::{collections::HashSet, io, num::ParseIntError, str::FromStr};
+
+// use problem::{CSV, Input, Problem, solve};
+
+// struct Day16;
+// impl Problem for Day16 {
+//     type Input = Info;
+//     type Part1Output = u32;
+//     type Part2Output = u64;
+//     type Error = ();
+
+//     fn part_1(input: &Self::Input) -> Result<Self::Part1Output, Self::Error> {
+        
+//     }
+
+//     fn part_2(input: &Self::Input) -> Result<Self::Part2Output, Self::Error> {
+        
+//     }
+// }
+
 struct Input {
     ticket_fields: HashMap<String, (Range<i32>, Range<i32>)>,
     my_ticket: Vec<i32>,
@@ -10,11 +30,7 @@ struct Input {
 }
 
 fn main() {
-    let start = Instant::now();
-    let input = get_input("input.txt");
-    let solution = solve_part_two(input);
-    println!("Found solution in {} microseconds", start.elapsed().as_micros());
-    println!("The solution is {}", solution);
+    solve::<Day16>("input").unwrap();
 }
 
 fn solve_part_one(input: Input) -> i32 {
