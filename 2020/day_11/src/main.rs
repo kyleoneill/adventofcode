@@ -32,7 +32,7 @@ fn shuffle_seats(ferry_seats: &mut Vec<Vec<char>>) -> (bool, i32) {
             //nested match halves the program run time, don't check adjacent seats for floor space
             match seat {
                 '#' | 'L' => {
-                    let adjacent_seats = count_adjacent_seats_part_two(&round_start, j, i);
+                    let adjacent_seats = count_adjacent_seats_part_two(&round_start, j as isize, i as isize);
                     match seat {
                         '#' => {
                             occupied_seats += 1;
@@ -60,45 +60,37 @@ fn shuffle_seats(ferry_seats: &mut Vec<Vec<char>>) -> (bool, i32) {
     (seat_has_changed, occupied_seats)
 }
 
-fn count_adjacent_seats_part_two(ferry_seats: &Vec<Vec<char>>, x: usize, y: usize) -> i32 {
+fn count_direction(ferry_seats: &Vec<Vec<char>>, x: isize, y: isize, dx: isize, dy: isize) -> usize {
+    let length = ferry_seats[0].len() as isize;
+    let height = ferry_seats.len() as isize;
+    let mut distance = 1;
+    loop {
+        let sx = x + distance * dx;
+        let sy = y + distance * dy;
+        if (sx >= 0 && sy >= 0) && (sx < length && sy < height) {
+            match ferry_seats[sy as usize][sx as usize] {
+                '#' => {
+                    return 1
+                },
+                'L' => return 0,
+                '.' => (),
+                _ => panic!("Undefined location")
+            }
+            distance += 1;
+        }
+        else {
+            return 0;
+        }
+    }
+}
+
+fn count_adjacent_seats_part_two(ferry_seats: &Vec<Vec<char>>, x: isize, y: isize) -> i32 {
     let mut counter = 0;
-    let length = ferry_seats[0].len();
-    let height = ferry_seats.len();
-    for x_pos in (0..x).rev() {
-        match ferry_seats[y][x_pos] {
-            '.' => {
-                continue;
-            },
-            'L' => {
-                break;
-            },
-            '#' => {
-                counter += 1;
-                break;
-            },
-            _ => {
-                panic!("Undefined");
-            }
-        }
+    const DIRECTIONS: [(isize, isize); 8] = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)];
+    for &(dx, dy) in DIRECTIONS.iter() {
+        counter += count_direction(ferry_seats, x, y, dx, dy)
     }
-    for x_pos in x..length {
-        match ferry_seats[y][x_pos] {
-            '.' => {
-                continue;
-            },
-            'L' => {
-                break;
-            },
-            '#' => {
-                counter += 1;
-                break;
-            },
-            _ => {
-                panic!("Undefined");
-            }
-        }
-    }
-    counter
+    counter as i32
 }
 
 #[allow(dead_code)]
