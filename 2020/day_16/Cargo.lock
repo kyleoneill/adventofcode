@@ -3,10 +3,3 @@
 [[package]]
 name = "day_16"
 version = "0.1.0"
-dependencies = [
- "problem",
-]
-
-[[package]]
-name = "problem"
-version = "0.1.0"
