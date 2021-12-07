@@ -83,6 +83,17 @@ impl<T: FromStr> FromStr for CSV<T> {
     }
 }
 
+impl <T: FromStr> ProblemInput for CSV<T>
+where T::Err: Debug {
+    type Error = T::Err;
+
+    fn parse<R: BufRead>(mut reader: R) -> Result<Self, Self::Error> {
+        let mut s = String::from("");
+        reader.read_to_string(&mut s).unwrap();
+        CSV::from_str(&s)
+    }
+}
+
 pub trait Problem {
     type Input: ProblemInput;
     type Part1Output: Display;
