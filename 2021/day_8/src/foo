@@ -1,0 +1,65 @@
+cdfbe: 5
+gcdfa: 2
+fbcad: 3
+
+cefabd: 9
+cdfgeb: 6
+cagedb: 0
+
+Known
+------------
+ab: 1
+eafb: 4
+dab: 7
+
+Irrelevant
+------------
+acedgfb: 8
+
+letters-in-other-segments
+5:
+    1 occurs in 8
+    1 occurs in 7, 8
+    2 occur in 4, 8
+    1 occurs in 1, 7, 8
+
+2:
+    2 occurs in 8
+    1 occurs in 7, 8
+    1 occurs in 4, 8
+    1 occurs in 1, 4, 7, 8
+
+3:
+    1 occurs in 4, 8
+    1 occurs in 1, 4, 7, 8
+    2 occurs in 8
+    1 occurs in 7, 8
+
+
+
+T: Letter not shared between 1 and 7
+UL:
+UR:
+M:
+LL:
+LR:
+B:
+
+
+  1:       4:
+ ....     ....
+.    c   b    c
+.    c   b    c
+ ....     dddd
+.    f   .    f
+.    f   .    f
+ ....     ....
+
+  7:      8:
+ aaaa    aaaa
+.    c  b    c
+.    c  b    c
+ ....    dddd
+.    f  e    f
+.    f  e    f
+ ....    gggg
