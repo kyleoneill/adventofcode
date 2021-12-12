@@ -1,8 +1,37 @@
 use problem::{Problem, solve};
 use std::str::FromStr;
 
+#[derive(Clone, Copy, PartialEq)]
+struct Coordinate {
+    x: usize,
+    y: usize
+}
+
+impl Coordinate {
+    fn new(x: usize, y: usize) -> Self {
+        Coordinate { x, y }
+    }
+}
+
+#[derive(Clone)]
 struct VentRow {
     values: Vec<i32>
+}
+
+struct VentMap {
+    vents: Vec<VentRow>
+}
+
+impl VentMap {
+    fn new(input: &Vec<VentRow>) -> Self {
+        VentMap { vents: input.to_vec() }
+    }
+    fn val_at_cord(&self, cord: &Coordinate) -> Option<i32> {
+        if cord.y < self.vents.len() && cord.x < self.vents[0].values.len() {
+            return Some(self.vents[cord.y].values[cord.x])
+        }
+        None
+    }
 }
 
 impl FromStr for VentRow {
@@ -20,21 +49,6 @@ impl FromStr for VentRow {
 #[derive(Debug)]
 enum Error {
     NoSolution
-}
-
-struct SmallestBasins {
-    smallest: i32,
-    second: i32,
-    third: i32
-}
-
-impl SmallestBasins {
-    fn new() -> Self {
-        SmallestBasins { smallest: 0, second: 0, third: 0 }
-    }
-    fn solve(&self) -> i32 {
-        self.smallest * self.second * self.third
-    }
 }
 
 fn is_low_point(input: &Vec<VentRow>, i: usize, j: usize, val: &i32) -> bool {
@@ -78,16 +92,57 @@ fn solve_1(input: &Vec<VentRow>) -> Option<i32> {
     Some(risk_total)
 }
 
+fn build_slope(vent_map: &VentMap, cord_looking_at: &Coordinate, basins: &mut Vec<Coordinate>) {
+    let val = vent_map.val_at_cord(cord_looking_at).unwrap();
+    if val == 9 || basins.contains(cord_looking_at) {
+        return;
+    }
+    basins.push(*cord_looking_at);
+    // check up
+    if cord_looking_at.y != 0 {
+        if val < vent_map.vents[cord_looking_at.y - 1].values[cord_looking_at.x] {
+            let new_cord = Coordinate::new(cord_looking_at.x, cord_looking_at.y - 1);
+            build_slope(vent_map, &new_cord, basins);
+        }
+    }
+    // check down
+    if cord_looking_at.y != vent_map.vents.len() - 1 {
+        if val < vent_map.vents[cord_looking_at.y + 1].values[cord_looking_at.x] {
+            let new_cord = Coordinate::new(cord_looking_at.x, cord_looking_at.y + 1);
+            build_slope(vent_map, &new_cord, basins);
+        }
+    }
+    // check left
+    if cord_looking_at.x != 0 {
+        if val < vent_map.vents[cord_looking_at.y].values[cord_looking_at.x - 1] {
+            let new_cord = Coordinate::new(cord_looking_at.x - 1, cord_looking_at.y);
+            build_slope(vent_map, &new_cord, basins);
+        }
+    }
+    // check right
+    if cord_looking_at.x != vent_map.vents[0].values.len() - 1 {
+        if val < vent_map.vents[cord_looking_at.y].values[cord_looking_at.x + 1] {
+            let new_cord = Coordinate::new(cord_looking_at.x + 1, cord_looking_at.y);
+            build_slope(vent_map, &new_cord, basins);
+        }
+    }
+}
+
 fn solve_2(input: &Vec<VentRow>) -> Option<i32> {
-    let mut smallest_basins = SmallestBasins::new();
+    let vent_map = VentMap::new(input);
+    let mut basin_areas: Vec<i32> = Vec::new();
     for(i, row) in input.iter().enumerate() {
         for (j, val) in row.values.iter().enumerate() {
             if is_low_point(input, i, j, val) {
-                // find basin, get area, check if it's within smallest 3
+                let cord = Coordinate::new(j, i);
+                let mut basin_cords: Vec<Coordinate> = Vec::new();
+                build_slope(&vent_map, &cord, &mut basin_cords);
+                basin_areas.push(basin_cords.len() as i32);
             }
         }
     }
-    Some(smallest_basins.solve())
+    basin_areas.sort();
+    Some(basin_areas.iter().rev().take(3).product())
 }
 
 struct Day9;
@@ -109,5 +164,5 @@ impl Problem for Day9 {
 }
 
 fn main() {
-    solve::<Day9>("test").unwrap();
+    solve::<Day9>("input").unwrap();
 }
