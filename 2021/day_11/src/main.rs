@@ -64,7 +64,7 @@ impl Problem for Day11 {
     fn solve_part_one(input: &Self::Input) -> Self::PartOne {
         let mut grid = input.clone();
         let mut total_flashes = 0;
-        for n in 0..100 {
+        for _n in 0..100 {
             total_flashes += grid.step();
         }
         total_flashes
