@@ -1,138 +1,124 @@
+use anyhow::{anyhow, Context, Error, Result};
 use std::{
-    fmt::{Debug, Display},
+    env,
+    fmt::{self, Display},
     fs::File,
-    io::{self, BufRead, BufReader},
-    str::FromStr,
-    time::Instant,
+    io::{BufRead, BufReader},
+    path::Path,
+    str::{from_utf8, FromStr},
+    time::{Duration, Instant},
 };
 
-pub trait ProblemInput: Sized {
-    type Error: Debug;
-
-    fn parse<R: BufRead>(reader: R) -> Result<Self, Self::Error>;
+pub trait Input: Sized {
+    fn parse<R: BufRead>(reader: R) -> Result<Self>;
 }
 
-#[derive(Debug)]
-pub enum ParseLinesError<T> {
-    IoError(io::Error),
-    ParseLine {
-        line_number: usize,
-        error: T,
-    },
-}
-
-impl<T> From<io::Error> for ParseLinesError<T> {
-    fn from(e: io::Error) -> Self {
-        ParseLinesError::IoError(e)
-    }
-}
-
-impl<T: FromStr> ProblemInput for Vec<T>
+impl<T: FromStr> Input for Vec<T>
 where
-    T::Err: Debug,
+    T::Err: Display,
 {
-    type Error = ParseLinesError<T::Err>;
-
-    fn parse<R: BufRead>(reader: R) -> Result<Self, Self::Error> {
-        Ok(
-            reader.lines()
-                .enumerate()
-                .map(|(line_number, line)| line?.parse().map_err(|error| ParseLinesError::ParseLine { line_number: line_number + 1, error }))
-                .collect::<Result<Vec<_>, _>>()?
-        )
+    fn parse<R: BufRead>(reader: R) -> Result<Self> {
+        reader
+            .lines()
+            .enumerate()
+            .map(|(line_number, line)| {
+                T::from_str(&line.context("Failed to read line")?)
+                    .map_err(|e| anyhow!("Failed to parse line {}: {}", line_number + 1, e))
+            })
+            .collect()
     }
 }
 
-pub struct One<T>(pub T);
+pub struct Unimplemented;
 
-#[derive(Debug)]
-pub enum OneError<T> {
-    IoError(io::Error),
-    NoInput,
-    ParseError(T),
-}
-
-impl<T> From<io::Error> for OneError<T> {
-    fn from(e: io::Error) -> Self {
-        OneError::IoError(e)
-    }
-}
-
-impl<T: FromStr> ProblemInput for One<T>
-where
-    T::Err: Debug,
-{
-    type Error = OneError<T::Err>;
-
-    fn parse<R: BufRead>(reader: R) -> Result<Self, Self::Error> {
-        Ok(One(reader.lines().next().ok_or(OneError::NoInput)??.parse().map_err(|e| OneError::ParseError(e))?))
-    }
-}
-
-pub struct CSV<T> {
-    pub values: Vec<T>,
-}
-
-impl<T: FromStr> FromStr for CSV<T> {
-    type Err = T::Err;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self {
-            values: s.split(',').map(|x| x.parse()).collect::<Result<_, _>>()?,
-        })
-    }
-}
-
-impl <T: FromStr> ProblemInput for CSV<T>
-where T::Err: Debug {
-    type Error = T::Err;
-
-    fn parse<R: BufRead>(mut reader: R) -> Result<Self, Self::Error> {
-        let mut s = String::from("");
-        reader.read_to_string(&mut s).unwrap();
-        CSV::from_str(&s)
+impl Display for Unimplemented {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "unimplemented")
     }
 }
 
 pub trait Problem {
-    type Input: ProblemInput;
-    type Part1Output: Display;
-    type Part2Output: Display;
-    type Error;
+    type Input: Input;
+    type PartOne: Display;
+    type PartTwo: Display;
 
-    fn part_1(input: &Self::Input) -> Result<Self::Part1Output, Self::Error>;
-    fn part_2(input: &Self::Input) -> Result<Self::Part2Output, Self::Error>;
+    fn solve_part_one(input: &Self::Input) -> Self::PartOne;
+    fn solve_part_two(input: &Self::Input) -> Self::PartTwo;
 }
 
-#[derive(Debug)]
-pub enum SolveError<P, E> {
-    IoError(io::Error),
-    ParseInput(P),
-    SolvePart1(E),
-    SolvePart2(E),
-}
+pub struct CSV<T>(Vec<T>);
 
-impl<P, E> From<io::Error> for SolveError<P, E> {
-    fn from(e: io::Error) -> Self {
-        Self::IoError(e)
+impl<T> CSV<T> {
+    pub fn values(&self) -> &[T] {
+        &self.0
     }
 }
 
-pub fn solve<P: Problem>(path: &str) -> Result<(P::Part1Output, P::Part2Output), SolveError<<P::Input as ProblemInput>::Error, P::Error>> {
-    let input_file = BufReader::new(File::open(path)?);
-    let input = P::Input::parse(input_file).map_err(|e| SolveError::ParseInput(e))?;
+impl<T: FromStr> FromStr for CSV<T>
+where
+    T::Err: std::error::Error + Send + Sync + 'static,
+{
+    type Err = Error;
 
+    fn from_str(s: &str) -> Result<Self> {
+        Self::parse(s.as_bytes())
+    }
+}
+
+impl<T: FromStr> Input for CSV<T>
+where
+    T::Err: std::error::Error + Send + Sync + 'static,
+{
+    fn parse<R: BufRead>(reader: R) -> Result<Self> {
+        let values = reader
+            .split(b',')
+            .map(|x| Ok(from_utf8(&x?)?.parse()?))
+            .collect::<Result<_, Error>>()?;
+        Ok(Self(values))
+    }
+}
+
+pub struct Solution<T> {
+    result: T,
+    duration: Duration,
+}
+
+impl<T: Display> Display for Solution<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "  Solution: {}", self.result)?;
+        writeln!(f, "  Elapsed:  {} seconds", self.duration.as_secs_f64())?;
+        Ok(())
+    }
+}
+
+fn time_solve<F: FnOnce() -> T, T>(f: F) -> Solution<T> {
     let start = Instant::now();
-    let part_1 = P::part_1(&input).map_err(|e| SolveError::SolvePart1(e))?;
+    let result = f();
     let duration = Instant::now().duration_since(start);
+    Solution { result, duration }
+}
 
-    println!("Part 1:\n  Solution: {}\n  Elapsed:  {} seconds", part_1, duration.as_secs_f64());
+pub type SolveResult<P> = Result<(
+    Solution<<P as Problem>::PartOne>,
+    Solution<<P as Problem>::PartTwo>,
+)>;
 
-    let start = Instant::now();
-    let part_2 = P::part_2(&input).map_err(|e| SolveError::SolvePart2(e))?;
-    let duration = Instant::now().duration_since(start);
+pub fn solve<P: Problem>(path: &Path) -> SolveResult<P> {
+    let input_file = BufReader::new(File::open(path).context("Failed to open input file")?);
+    let input = Input::parse(input_file).context("Failed to parse input")?;
 
-    println!("Part 2:\n  Solution: {}\n  Elapsed:  {} seconds", part_2, duration.as_secs_f64());
+    Ok((
+        time_solve(|| P::solve_part_one(&input)),
+        time_solve(|| P::solve_part_two(&input)),
+    ))
+}
 
-    Ok((part_1, part_2))
+pub fn solve_main<P: Problem>() {
+    let path = env::args().nth(1).expect("missing input file path");
+    let (part_one, part_two) = solve::<P>(path.as_ref()).expect("failed to solve problem");
+
+    println!("Part one:");
+    println!("{}", part_one);
+    println!("Part two:");
+    println!("{}", part_two);
 }
