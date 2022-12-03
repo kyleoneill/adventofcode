@@ -1,26 +1,13 @@
 use std::str::FromStr;
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::string::ParseError;
+use std::iter::FromIterator;
 use problem::{solve_main, Problem};
 
-struct Compartment {
-    compartment: HashMap<char, u32>
-}
-
-impl Compartment {
-    pub fn from_str(input: &str) -> Self {
-        let mut compartment: HashMap<char, u32> = HashMap::new();
-        for c in input.chars() {
-            *compartment.entry(c).or_insert(0) += 1;
-        }
-        Self { compartment }
-    }
-}
-
 struct Backpack {
-    left_compartment: Compartment,
-    right_compartment: Compartment,
-    unified: Compartment
+    left_compartment: HashSet<char>,
+    right_compartment: HashSet<char>,
+    unified: HashSet<char>
 }
 
 impl FromStr for Backpack {
@@ -28,9 +15,9 @@ impl FromStr for Backpack {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let half_point = s.chars().count() / 2;
         let (left, right) = s.split_at(half_point);
-        let left_compartment = Compartment::from_str(left);
-        let right_compartment = Compartment::from_str(right);
-        let unified = Compartment::from_str(s);
+        let left_compartment = left.chars().collect();
+        let right_compartment = right.chars().collect();
+        let unified = s.chars().collect();
         Ok(Self{ left_compartment, right_compartment, unified })
     }
 }
@@ -46,19 +33,21 @@ impl Backpack {
     }
 
     pub fn get_priority(&self) -> Option<u32> {
-        for key in self.left_compartment.compartment.keys() {
-            if self.right_compartment.compartment.contains_key(key) {
-                return Some(priority(key));
-            }
+        let intersection: HashSet<_> = self.left_compartment.intersection(&self.right_compartment).collect();
+        if intersection.len() == 1 {
+            return Some(priority(&intersection.iter().next().unwrap()))
         }
         None
     }
 
     pub fn get_group_badge_priority(backpacks: &[Backpack]) -> Option<u32> {
-        for b in backpacks {
-
+        // There has to be a better way to do this
+        let first_intersection: HashSet<char> = backpacks[0].unified.intersection(&backpacks[1].unified).cloned().collect();
+        let second_intersection: HashSet<_> = first_intersection.intersection(&backpacks[2].unified).collect();
+        if second_intersection.len() == 1 {
+            return Some(priority(&second_intersection.iter().next().unwrap()))
         }
-        Some(0)
+        None
     }
 }
 
