@@ -1,7 +1,6 @@
 use std::str::FromStr;
 use std::collections::HashSet;
 use std::string::ParseError;
-use std::iter::FromIterator;
 use problem::{solve_main, Problem};
 
 struct Backpack {
@@ -41,13 +40,8 @@ impl Backpack {
     }
 
     pub fn get_group_badge_priority(backpacks: &[Backpack]) -> Option<u32> {
-        // There has to be a better way to do this
         let first_intersection: HashSet<char> = backpacks[0].unified.intersection(&backpacks[1].unified).cloned().collect();
-        let second_intersection: HashSet<_> = first_intersection.intersection(&backpacks[2].unified).collect();
-        if second_intersection.len() == 1 {
-            return Some(priority(&second_intersection.iter().next().unwrap()))
-        }
-        None
+        first_intersection.intersection(&backpacks[2].unified).map(priority).next()
     }
 }
 
