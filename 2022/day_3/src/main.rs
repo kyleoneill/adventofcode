@@ -40,8 +40,12 @@ impl Backpack {
     }
 
     pub fn get_group_badge_priority(backpacks: &[Backpack]) -> Option<u32> {
-        let first_intersection: HashSet<char> = backpacks[0].unified.intersection(&backpacks[1].unified).cloned().collect();
-        first_intersection.intersection(&backpacks[2].unified).map(priority).next()
+        // This should not be one lined, but it _is_ objectively funny
+        // Note for future me wondering what this does:
+        // Get an intersection of backpacks 1 and 2, then get an intersection of that and backpack 3
+        // Map the result of this second intersection through `priority` and then return the first
+        // and only element resulting from the mapped iter
+        backpacks[0].unified.intersection(&backpacks[1].unified).cloned().collect::<HashSet<char>>().intersection(&backpacks[2].unified).map(priority).next()
     }
 }
 
