@@ -114,11 +114,12 @@ pub fn solve<P: Problem>(path: &Path) -> SolveResult<P> {
 }
 
 pub fn solve_main<P: Problem>() {
-    let path = env::args().nth(0).unwrap();
-    let split: Vec<&str> = path.split('/').collect();
-    let mut day_path = split[2].to_owned();
-    day_path.push_str("/full.input");
-    let path = env::args().nth(1).unwrap_or(day_path);
+    // let path = env::args().nth(0).unwrap();
+    // let split: Vec<&str> = path.split('/').collect();
+    // let mut day_path = split[2].to_owned();
+    // day_path.push_str("/full.input");
+    // let path = env::args().nth(1).unwrap_or(day_path);
+    let path = env::args().nth(1).unwrap();
     let (part_one, part_two) = solve::<P>(path.as_ref()).expect("failed to solve problem");
 
     println!("Part one:");
