@@ -100,9 +100,9 @@ fn read_input(input: &Vec<String>) -> (Crates, Vec<Instruction>) {
     (crates, instructions)
 }
 
-struct Day4;
+struct Day5;
 
-impl Problem for Day4 {
+impl Problem for Day5 {
     type Input = Vec<String>;
     type PartOne = String;
     type PartTwo = String;
@@ -125,5 +125,5 @@ impl Problem for Day4 {
 }
 
 fn main() {
-    solve_main::<Day4>();
+    solve_main::<Day5>();
 }
