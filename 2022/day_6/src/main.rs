@@ -1,6 +1,33 @@
 use std::collections::VecDeque;
 use problem::{solve_main, Problem};
 
+
+/*
+This is a much more efficient way of solving this problem, I did not write this
+fn first_disjoint_substring(input: &[u8], window: usize) -> Option<usize> {
+    let mut counts = [0; 26];
+    let mut unique = 0;
+    for n in 0..input.len() {
+        let i = (input[n] - b'a') as usize;
+        if counts[i] == 0 {
+            unique += 1;
+        }
+        counts[i] += 1;
+        if n >= window {
+            let o = (input[n - window] - b'a') as usize;
+            if counts[o] == 1 {
+                unique -= 1;
+            }
+            counts[o] -= 1;
+        }
+        if unique == window {
+            return Some(n + 1);
+        }
+    }
+    None
+}
+ */
+
 fn deque_is_unique(deque: &VecDeque<char>) -> bool {
     for i in 0..(deque.len() - 1) {
         for j in (i + 1)..deque.len() {
