@@ -45,6 +45,7 @@ fn get_num_from_line(line: &str) -> u32 {
             second_digit = Some(c);
         }
         else {
+            // THIS IS NOT EFFICIENT
             // Start at current char and begin a new iteration trying to build a number
             let char_vec: Vec<char> = line.chars().collect();
             let mut building_string: String = "".to_owned();
@@ -56,7 +57,6 @@ fn get_num_from_line(line: &str) -> u32 {
                 if current_char.is_digit(10) {
                     break;
                 }
-
                 building_string.push(current_char);
                 match str_to_char_digit(building_string.as_str()) {
                     Some(val) => {
@@ -69,7 +69,6 @@ fn get_num_from_line(line: &str) -> u32 {
                     },
                     None => ()
                 }
-
                 // There are no numbers 1-10 longer than 5 digits, so we failed to build one
                 if nums_read >= 5 {
                     break;
