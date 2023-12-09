@@ -7,13 +7,12 @@ struct Day3;
 struct PartNumber {
     num: String,
     coords: Vec<(usize, usize)>,
-    start: (usize, usize),
-    end: (usize, usize)
+    start: (usize, usize)
 }
 
 impl PartNumber {
-    pub fn new(num: String, coords: Vec<(usize, usize)>, start: (usize, usize), end: (usize, usize)) -> Self {
-        Self { num, coords, start, end }
+    pub fn new(num: String, coords: Vec<(usize, usize)>, start: (usize, usize)) -> Self {
+        Self { num, coords, start }
     }
 }
 
@@ -50,7 +49,7 @@ impl PartMap {
                     if build_number.as_str() != "" {
                         // reset buffer, reset start position, store num
                         let end_pos = (x - 1, y);
-                        let part_num = PartOrSymbol::Part(PartNumber::new(build_number.clone(), build_number_coords.clone(), start_pos, end_pos));
+                        let part_num = PartOrSymbol::Part(PartNumber::new(build_number.clone(), build_number_coords.clone(), start_pos));
                         map.insert(end_pos, part_num);
                         build_number = "".to_owned();
                         start_pos = (0, 0);
@@ -66,7 +65,7 @@ impl PartMap {
             // Line is over, check if anything is in the built str
             if build_number.as_str() != "" {
                 let end_pos = (line.len() - 1, y);
-                let part_num = PartOrSymbol::Part(PartNumber::new(build_number.clone(), build_number_coords, start_pos, end_pos));
+                let part_num = PartOrSymbol::Part(PartNumber::new(build_number.clone(), build_number_coords, start_pos));
                 map.insert(end_pos, part_num);
             }
         }
@@ -139,7 +138,7 @@ impl PartMap {
     }
 
     fn get_number_from_coord(&self, check_coord: (usize, usize)) -> Option<PartNumber> {
-        for (coord, part_or_symbol) in &self.map {
+        for (_coord, part_or_symbol) in &self.map {
             match part_or_symbol {
                 PartOrSymbol::Symbol(_) => (),
                 PartOrSymbol::Part(part) => {
