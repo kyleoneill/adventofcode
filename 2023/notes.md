@@ -1,0 +1,2 @@
+- Day 12 is a difficult day and is solved using a dynamic programming recursive function, good one to study
+- Day 5 
