@@ -1,6 +1,7 @@
-use std::fmt;
+use std::{fmt, collections::HashMap};
 use problem::{solve_main, Problem};
 
+#[derive(Debug)]
 struct Coord {
     x: usize,
     y: usize
@@ -19,7 +20,7 @@ enum Direction {
     West
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Hash, Eq, Clone)]
 enum Tile {
     RoundRock,
     CubeRock,
@@ -47,7 +48,7 @@ impl fmt::Display for Tile {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Platform {
     plane: Vec<Vec<Tile>>,
     width: usize,
@@ -81,26 +82,65 @@ impl Platform {
         Self { plane: res, width, height }
     }
 
+    /// Ray cast down the row
+    /// Save the coordinate of the first empty tile we find
+    /// Save the coordinate of every round rock we find, until we hit a cube rock
+    /// When we hit a cube rock, replace every observed circle rock with ground and then add circle rocks to the first empty tile we saved
+    /// Repeat this after finding the first empty tile after that cube rock, until we reach the last column
     fn slide_rocks(&mut self, direction: Direction) {
-        for x_index in 0..self.width {
-            // Ray cast down the row
-            // Save the coordinate of the first empty tile we find
-            // Save the coordinate of every round rock we find, until we hit a cube rock
-            // When we hit a cube rock, replace every observed circle rock with ground and then add circle rocks to the first empty tile we saved
-            // Repeat this after finding the first empty tile after that cube rock, until we reach the last column
-            let mut empty_tile: Option<Coord> = None;
-            let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
-            for y_index in 0..self.height {
-                self.check_tile(&mut empty_tile, &mut observed_round_rock_locations, x_index, y_index);
-            }
-            // If we reached the end of the column without hitting a square rock, but we have circle rocks queued to move, move them now
-            if empty_tile.is_some() {
-                self.move_rocks(&observed_round_rock_locations, x_index, self.height - 1, &empty_tile.unwrap());
+        match direction {
+            Direction::North => {
+                for x_index in 0..self.width {
+                    let mut empty_tile: Option<Coord> = None;
+                    let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
+                    for y_index in 0..self.height {
+                        self.check_tile(&mut empty_tile, &mut observed_round_rock_locations, x_index, y_index, &direction);
+                    }
+                    if empty_tile.is_some() {
+                        self.move_rocks(&observed_round_rock_locations, x_index, self.height, &empty_tile.unwrap(), &direction);
+                    }
+                }
+            },
+            Direction::East => {
+                for y_index in 0..self.height {
+                    let mut empty_tile: Option<Coord> = None;
+                    let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
+                    for x_index in (0..self.width).rev() {
+                        self.check_tile(&mut empty_tile, &mut observed_round_rock_locations, x_index, y_index, &direction);
+                    }
+                    if empty_tile.is_some() {
+                        self.move_rocks(&observed_round_rock_locations, self.width, y_index, &empty_tile.unwrap(), &direction);
+                    }
+                }
+            },
+            Direction::South => {
+                for x_index in 0..self.width {
+                    let mut empty_tile: Option<Coord> = None;
+                    let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
+                    for y_index in (0..self.height).rev() {
+                        self.check_tile(&mut empty_tile, &mut observed_round_rock_locations, x_index, y_index, &direction);
+                    }
+                    if empty_tile.is_some() {
+                        self.move_rocks(&observed_round_rock_locations, x_index, self.height, &empty_tile.unwrap(), &direction);
+                    }
+                }
+            },
+            Direction::West => {
+                for y_index in 0..self.height {
+                    let mut empty_tile: Option<Coord> = None;
+                    let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
+                    for x_index in 0..self.width {
+                        self.check_tile(&mut empty_tile, &mut observed_round_rock_locations, x_index, y_index, &direction);
+                    }
+                    if empty_tile.is_some() {
+                        self.move_rocks(&observed_round_rock_locations, self.width, y_index, &empty_tile.unwrap(), &direction);
+                    }
+                }
             }
         }
     }
 
-    fn check_tile(&mut self, empty_tile: &mut Option<Coord>, observed_round_rock_locations: &mut Vec<Coord>, x_index: usize, y_index: usize) {
+    fn check_tile(&mut self, empty_tile: &mut Option<Coord>, observed_round_rock_locations: &mut Vec<Coord>, x_index: usize, y_index: usize, direction: &Direction) {
         match self.plane[y_index][x_index] {
             Tile::RoundRock => {
                 if empty_tile.is_some() {
@@ -114,7 +154,7 @@ impl Platform {
             },
             Tile::CubeRock => {
                 if empty_tile.is_some() {
-                    self.move_rocks(observed_round_rock_locations, x_index, y_index, empty_tile.as_ref().unwrap());
+                    self.move_rocks(observed_round_rock_locations, x_index, y_index, empty_tile.as_ref().unwrap(), direction);
                     *observed_round_rock_locations = Vec::new();
                     *empty_tile = None;
                 }
@@ -122,15 +162,34 @@ impl Platform {
         }
     }
 
-    fn move_rocks(&mut self, observed_round_rock_locations: &Vec<Coord>, x_index: usize, y_index: usize, empty_tile_coord: &Coord) {
+    fn move_rocks(&mut self, observed_round_rock_locations: &Vec<Coord>, x_index: usize, y_index: usize, empty_tile_coord: &Coord, direction: &Direction) {
         let round_rocks_to_move = observed_round_rock_locations.len();
         for coord in observed_round_rock_locations {
             self.plane[coord.y][coord.x] = Tile::Ground;
         }
-        for i in 0..round_rocks_to_move {
-            // this is going to change with the direction
-            self.plane[empty_tile_coord.y + i][x_index] = Tile::RoundRock;
+        match direction {
+            Direction::North => {
+                for i in 0..round_rocks_to_move {
+                    self.plane[empty_tile_coord.y + i][x_index] = Tile::RoundRock;
+                }
+            },
+            Direction::East => {
+                for i in 0..round_rocks_to_move {
+                    self.plane[y_index][empty_tile_coord.x - i] = Tile::RoundRock;
+                }
+            },
+            Direction::South => {
+                for i in 0..round_rocks_to_move {
+                    self.plane[empty_tile_coord.y - i][x_index] = Tile::RoundRock;
+                }
+            },
+            Direction::West => {
+                for i in 0..round_rocks_to_move {
+                    self.plane[y_index][empty_tile_coord.x + i] = Tile::RoundRock;
+                }
+            }
         }
+
     }
 
     fn count_load(&self) -> usize {
@@ -141,6 +200,29 @@ impl Platform {
             inverted_height -= 1;
         }
         sum
+    }
+
+    fn cycle(&mut self) {
+        let mut map: HashMap<Self, i64> = HashMap::new();
+        let mut i = 0;
+        while i < 1_000_000_000 {
+            match map.get(self) {
+                Some(iteration_seen) => {
+                    let distance_to_end = 1_000_000_000 - i;
+                    // the length until we loop is the current index i minus when we first saw it
+                    // Ex, the insert at i=1 got a result at i=3 so we do 3-1 to get a loop length of 2
+                    let loop_len = i - iteration_seen;
+                    let distance_to_jump = (distance_to_end / loop_len) * loop_len;
+                    i += distance_to_jump;
+                },
+                None => { map.insert(self.clone(), i); }
+            };
+            self.slide_rocks(Direction::North);
+            self.slide_rocks(Direction::West);
+            self.slide_rocks(Direction::South);
+            self.slide_rocks(Direction::East);
+            i += 1;
+        }
     }
 }
 
@@ -158,7 +240,9 @@ impl Problem for Day14 {
     }
 
     fn solve_part_two(input: &Self::Input) -> Self::PartTwo {
-        0
+        let mut platform = Platform::from_input(input);
+        platform.cycle();
+        platform.count_load()
     }
 }
 
