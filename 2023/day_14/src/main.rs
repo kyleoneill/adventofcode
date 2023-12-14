@@ -1,6 +1,17 @@
 use std::fmt;
 use problem::{solve_main, Problem};
 
+struct Coord {
+    x: usize,
+    y: usize
+}
+
+impl Coord {
+    fn new(x: usize, y: usize) -> Self {
+        Self {x, y}
+    }
+}
+
 enum Direction {
     North,
     East,
@@ -43,6 +54,18 @@ struct Platform {
     height: usize
 }
 
+impl fmt::Display for Platform {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for row in &self.plane {
+            for tile in row {
+                write!(f, "{}", tile).unwrap()
+            }
+            write!(f, "\n").unwrap()
+        }
+        fmt::Result::Ok(())
+    }
+}
+
 impl Platform {
     fn from_input(input: &Vec<String>) -> Self {
         let mut res: Vec<Vec<Tile>> = Vec::new();
@@ -59,36 +82,29 @@ impl Platform {
     }
 
     fn slide_rocks(&mut self, direction: Direction) {
-        for column_index in 0..self.width {
+        for x_index in 0..self.width {
             // Ray cast down the row
             // Save the coordinate of the first empty tile we find
             // Save the coordinate of every round rock we find, until we hit a cube rock
             // When we hit a cube rock, replace every observed circle rock with ground and then add circle rocks to the first empty tile we saved
             // Repeat this after finding the first empty tile after that cube rock, until we reach the last column
-            let mut empty_tile: Option<usize> = None;
-            let mut observed_round_rock_locations: Vec<usize> = Vec::new();
-            for row_index in 0..self.height {
-                match self.plane[row_index][column_index] {
+            let mut empty_tile: Option<Coord> = None;
+            let mut observed_round_rock_locations: Vec<Coord> = Vec::new();
+            for y_index in 0..self.height {
+                match self.plane[y_index][x_index] {
                     Tile::RoundRock => {
                         if empty_tile.is_some() {
-                            observed_round_rock_locations.push(row_index);
+                            observed_round_rock_locations.push(Coord::new(x_index, y_index));
                         }
                     },
                     Tile::Ground => {
                         if empty_tile.is_none() {
-                            empty_tile = Some(row_index);
+                            empty_tile = Some(Coord::new(x_index, y_index));
                         }
                     },
                     Tile::CubeRock => {
                         if empty_tile.is_some() {
-                            let round_rocks_to_move = observed_round_rock_locations.len();
-                            for val in observed_round_rock_locations {
-                                self.plane[val][column_index] = Tile::Ground;
-                            }
-                            let slide_location = empty_tile.unwrap();
-                            for i in 0..round_rocks_to_move {
-                                self.plane[slide_location + i][column_index] = Tile::RoundRock;
-                            }
+                            self.move_rocks(observed_round_rock_locations, x_index, y_index, empty_tile.unwrap());
                             observed_round_rock_locations = Vec::new();
                             empty_tile = None;
                         }
@@ -97,15 +113,19 @@ impl Platform {
             }
             // If we reached the end of the column without hitting a square rock, but we have circle rocks queued to move, move them now
             if empty_tile.is_some() {
-                let round_rocks_to_move = observed_round_rock_locations.len();
-                for val in observed_round_rock_locations {
-                    self.plane[val][column_index] = Tile::Ground;
-                }
-                let slide_location = empty_tile.unwrap();
-                for i in 0..round_rocks_to_move {
-                    self.plane[slide_location + i][column_index] = Tile::RoundRock;
-                }
+                self.move_rocks(observed_round_rock_locations, x_index, self.height - 1, empty_tile.unwrap());
             }
+        }
+    }
+
+    fn move_rocks(&mut self, observed_round_rock_locations: Vec<Coord>, x_index: usize, y_index: usize, empty_tile_coord: Coord) {
+        let round_rocks_to_move = observed_round_rock_locations.len();
+        for coord in observed_round_rock_locations {
+            self.plane[coord.y][coord.x] = Tile::Ground;
+        }
+        for i in 0..round_rocks_to_move {
+            // this is going to change with the direction
+            self.plane[empty_tile_coord.y + i][x_index] = Tile::RoundRock;
         }
     }
 
