@@ -15,3 +15,13 @@ This AoC has used a lot of iterators so some helpful info on Map<>
 // The first map here takes a function that returns a value, not a reference, so the second map's function signature _must_ take a value and not a reference
 Pattern::read_input(input).iter().map(Pattern::get_reflection).map(LineOfReflection::to_usize).sum()
 ```
+
+- Day 15 implements a HashMap which is really cool, check out solution for a reminder as to how a basic hashmap works
+    - A hashmap is a `SomeAddressableStorage<Vec<T>>`
+        - When a key/value is inserted
+            - The key is hashed to generate an address and the hashmap checks to see if it contains a `Vec<T>` (referred to as a "bucket") at that address
+                - If a bucket exists, value `T` is inserted into the `Vec`
+                - If a bucket does not exist, a new `Vec<T>` is created at that address with the inserted value as its only value
+            - The un-hashed key is still associated with the value so we know what value to use when getting/updating/removing it later on
+        - When we access a value by key (to get, update, or remove) the hash of the key is used to determine the address of the `Vec` we search,
+          and then that `Vec` is iterated through until we reach the relevant `T`.
