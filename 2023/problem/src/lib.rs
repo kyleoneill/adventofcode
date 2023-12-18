@@ -10,14 +10,17 @@ use std::{
     collections::HashMap
 };
 
+// TODO: I added a lot of structs and fluff impls for the Grid type, should maybe move most of this to a new file as it is cluttering this one
+//       and making it difficult to read
+
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
-pub struct Coord {
-    pub x: usize,
-    pub y: usize
+pub struct Coord<T = usize> {
+    pub x: T,
+    pub y: T
 }
 
-impl Coord {
-    pub fn new(x: usize, y: usize) -> Self {
+impl<T> Coord<T> {
+    pub fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
 }
@@ -34,6 +37,15 @@ pub enum Direction {
     Left,
     Down,
     Right
+}
+
+impl Direction {
+    pub fn is_clockwise_turn(self, other: Self) -> bool {
+        (self == Direction::Up && other == Direction::Right) ||
+        (self == Direction::Right && other == Direction::Down) ||
+        (self == Direction::Down && other == Direction::Left) ||
+        (self == Direction::Left && other == Direction::Up)
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
