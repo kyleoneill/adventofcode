@@ -7,7 +7,140 @@ use std::{
     path::Path,
     str::{from_utf8, FromStr},
     time::{Duration, Instant},
+    collections::HashMap
 };
+
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
+pub struct Coord {
+    pub x: usize,
+    pub y: usize
+}
+
+impl Coord {
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
+    }
+}
+
+impl Display for Coord {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum Direction {
+    Up,
+    Left,
+    Down,
+    Right
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Neighbor {
+    pub coord: Coord,
+    pub direction: Direction
+}
+
+impl Neighbor {
+    pub fn new(coord: Coord, direction: Direction) -> Self {
+        Self { coord, direction }
+    }
+}
+
+pub struct Grid<T> {
+    pub map: HashMap<Coord, T>,
+    pub height: usize,
+    pub width: usize
+}
+
+impl<T: Display> Grid<T> {
+    pub fn from_text_grid(input: &Vec<String>, f: impl Fn(char) -> T) -> Self {
+        let mut map: HashMap<Coord, T> = HashMap::new();
+        let height = input.len();
+        assert!(height > 0, "Passed 2d text grid had a height of 0");
+        let width = input[0].chars().into_iter().count();
+        for (y, row) in input.iter().enumerate() {
+            for (x, c) in row.chars().enumerate() {
+                map.insert(Coord { x, y }, f(c));
+            }
+        }
+        Self { map, height, width }
+    }
+    pub fn neighbors(&self, current_coord: &Coord, only_immediate: bool) -> Vec<Option<Neighbor>> {
+        let mut neighbors: Vec<Option<Neighbor>> = Vec::new();
+        // If only_immediate is true, we only want the neighbors above, below, left, and right of current_coord
+        match only_immediate {
+            true => {
+                // Check up
+                if current_coord.y > 0 {
+                    let up_coord = Coord::new(current_coord.x, current_coord.y - 1);
+                    match self.map.get(&up_coord) {
+                        Some(_) => neighbors.push(Some(Neighbor::new(up_coord, Direction::Up))),
+                        None => neighbors.push(None)
+                    }
+                }
+                else {
+                    neighbors.push(None)
+                }
+                // Check down
+                let down_coord = Coord::new(current_coord.x, current_coord.y + 1);
+                match self.map.get(&down_coord) {
+                    Some(_) => neighbors.push(Some(Neighbor::new(down_coord, Direction::Down))),
+                    None => neighbors.push(None)
+                }
+                // Check left
+                if current_coord.x > 0 {
+                    let left_coord = Coord::new(current_coord.x - 1, current_coord.y);
+                    match self.map.get(&left_coord) {
+                        Some(_) => neighbors.push(Some(Neighbor::new(left_coord, Direction::Left))),
+                        None => neighbors.push(None)
+                    }
+                }
+                else {
+                    neighbors.push(None)
+                }
+                // Check right
+                let right_coord = Coord::new(current_coord.x + 1, current_coord.y);
+                match self.map.get(&right_coord) {
+                    Some(_) => neighbors.push(Some(Neighbor::new(right_coord, Direction::Right))),
+                    None => neighbors.push(None)
+                }
+            },
+            // If only_immediate is false, we want all 8 neighbors around our coord in the grid
+            false => {
+                unimplemented!("Have not implemented this yet");
+            }
+        }
+        neighbors
+    }
+    pub fn debug_print_coord_path(&self, coords: &Vec<Coord>) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let coord = Coord::new(x, y);
+                if coords.contains(&coord) {
+                    print!("X");
+                }
+                else {
+                    print!(".");
+                }
+            }
+            println!("");
+        }
+    }
+}
+
+impl<T: Display> Display for Grid<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                write!(f, "{}", self.map.get(&Coord { x, y }).expect("Failed to get coord in grid map"))?;
+            }
+            writeln!(f, "")?;
+        }
+        Ok(())
+    }
+}
 
 pub trait Input: Sized {
     fn parse<R: BufRead>(reader: R) -> Result<Self>;
