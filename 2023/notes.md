@@ -7,6 +7,7 @@
       is needed to meet special criteria on the pathfinding (must walk a minimum distance x, can only walk a max distance y) and to meet a
       requirement that each tile has a _cost_ associated with its value, independent of the distance we go. The many variables here make it a
       good example to learn how A* works and how to modify it to meet different constraints
+- Day 18, [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) to find the area of a polygon of arbitrary size using its corner coordinates
 
 This AoC has used a lot of iterators so some helpful info on Map<>
 ```rust
