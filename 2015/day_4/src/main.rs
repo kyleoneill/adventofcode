@@ -72,7 +72,7 @@ impl Problem for Day4 {
                 continue;
             }
 
-            // Change final one to 0xFF for part 2
+            // Check if the first 6 hex string characters of the hash are 0
             if digest.0[0] & 0xFF == 0x00 && digest.0[1] & 0xFF == 0x00 && digest.0[2] & 0xFF == 0x00 {
                 return num;
             }
