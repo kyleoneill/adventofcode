@@ -21,6 +21,19 @@ pub struct Coord<T = usize> {
     pub y: T
 }
 
+impl<T: FromStr> FromStr for Coord<T>
+where
+    T::Err: std::error::Error + Send + Sync + 'static,
+{
+    type Err = Error;
+    fn from_str(s: &str) -> std::result::Result<Coord<T>, Self::Err> {
+        let mut split = s.split(",");
+        let x: T = split.next().context("Did not get an X coord")?.parse::<T>().context("Failed to parse X coord")?;
+        let y: T = split.next().context("Did not get a Y coord")?.parse::<T>().context("Failed to parse Y coord")?;
+        Ok( Coord{ x, y } )
+    }
+}
+
 impl<T> Coord<T> {
     pub fn new(x: T, y: T) -> Self {
         Self { x, y }

@@ -56,7 +56,8 @@ fn is_string_nice_two(text: &str) -> bool {
         i += 1;
     }
 
-    // Doing this separately instead of in the previous loop is fine since o(2n) == o(n)
+    // Doing this separately instead of in the previous loop is fine since O(2n) doesn't add
+    // time complexity as the previous loop is O(1/2 n^2)
     for i in 0..chars.len() - 2 {
         if chars[i] == chars[i + 2] {
             has_separated_repeat = true;
