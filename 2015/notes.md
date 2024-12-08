@@ -29,3 +29,22 @@ Tricks:
     4. Check the digest for the current number.
         - If it does not begin with the first desired byte, increment the number by the range size
         - If it does begin with the first desired byte check each number in this range, until the first byte is no longer valid
+
+# Day 10 - Look-and-say sequence
+I solved this with brute force, but it looks like there are interesting ways to solve this in a much shorter fashion -[Wikipedia Article](https://en.wikipedia.org/wiki/Look-and-say_sequence)
+
+## Cosmological Decay
+Assuming that only digits 1, 2, and 3 are used then there are a finite number of subsequences that never again interact with their neighbors. There are 92 sequences,
+aligning with the number of elements on the periodic table. E.g., the sequence `3113322113` aligns with `Bi` and decays into `Pm.Pb`. `Pm` is `132` and `Pb` decays into `123222113`. You can
+continue this using only the element formats to quickly iterate through what a sequence will look like at some step.
+
+As an example, `Bi` on step three will look like this:
+1. `Bi` -> `Pm.Pb`
+2. `Pm.Pb` -> `Nd.Ti`
+    - `Pm` -> `Nd`, `Pb` -> `Ti`
+3. `Nd.Ti` -> `Pr.Hg`
+  - To convert this back into the correct number, just add together the string sequences for `Pr` and `Hg`, which will be `"31131112" + "31121123222113"`, or `"3113111231121123222113"`
+
+## Length Formula
+Lim(n->∞) `L(n+1) / L(n) = CC` where `CC` is a constant. `L(n)` is the number of digits of the `n`th member of the sequence. `CC` is a constant equal to
+`1.303577269034...`.
