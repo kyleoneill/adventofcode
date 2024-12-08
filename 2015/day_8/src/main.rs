@@ -10,7 +10,6 @@ fn count_string_size(input: &str) -> (usize, usize) {
 
     while let Some(c) = chars.next() {
         characters_of_code += 1;
-
         // Opening quotation
         if c == '"' && !inside_string {
             inside_string = true;
@@ -23,7 +22,6 @@ fn count_string_size(input: &str) -> (usize, usize) {
         else if c == '\\' {
             // All of the escaped sequences here represent one string character, so increment that counter
             string_chars += 1;
-
             // Since we're doing a chars.next(), have to also increment chars of code
             characters_of_code += 1;
             match chars.next().expect("Failed to read a char after reaching an escape backslash") {
@@ -49,9 +47,7 @@ fn count_string_size(input: &str) -> (usize, usize) {
 fn count_encoded_characters(input: &str) -> usize {
     // Encoded chars begins at 2 to account for the invisible beginning and ending quotation marks
     let mut encoded_characters: usize = 2;
-
     let mut chars = input.chars();
-
     while let Some(c) = chars.next() {
         encoded_characters += 1;
         if c == '"' || c == '\\' {

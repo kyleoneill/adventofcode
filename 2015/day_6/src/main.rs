@@ -54,6 +54,7 @@ impl Instruction {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct Rectangle {
     lower_left: Coord<isize>,
@@ -62,14 +63,17 @@ struct Rectangle {
 }
 
 impl Rectangle {
+    #[allow(dead_code)]
     fn new() -> Self {
         Self { lower_left: Coord{ x: 0, y: 0 }, upper_right: { Coord{ x: 999, y: 999 } }, state: 0 }
     }
+    #[allow(dead_code)]
     fn area(&self) -> isize {
         let length = self.upper_right.x - self.lower_left.x + 1;
         let width = self.upper_right.y - self.lower_left.y + 1;
         length * width
     }
+    #[allow(dead_code)]
     fn apply_operation_part_one(&mut self, op: &Operation) {
         match op {
             Operation::TurnOn => { self.state = 1 },
@@ -77,6 +81,7 @@ impl Rectangle {
             Operation::Toggle => { self.state = 1 - self.state },
         }
     }
+    #[allow(dead_code)]
     fn clamp(&mut self, other: &Self) {
         self.lower_left.x = isize::max(self.lower_left.x, other.lower_left.x);
         self.lower_left.y = isize::max(self.lower_left.y, other.lower_left.y);
@@ -131,6 +136,7 @@ fn part_two_slow(instructions: &Vec<Instruction>) -> usize {
 }
 
 // Attempt to get a more efficient solution, not finished yet
+#[allow(dead_code)]
 fn part_one_fast(instructions: &Vec<Instruction>) -> isize {
     // This views the problem as having a start of one rectangle and each instruction is an input of one rectangle, which can break the starting rectangle into up to 5 new ones.
     // When a given existing rectangle is checked against an instruction, that rectangle can be thought of as being broken into rectangles A through E, like
