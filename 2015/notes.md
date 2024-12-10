@@ -48,3 +48,10 @@ As an example, `Bi` on step three will look like this:
 ## Length Formula
 Lim(n->∞) `L(n+1) / L(n) = CC` where `CC` is a constant. `L(n)` is the number of digits of the `n`th member of the sequence. `CC` is a constant equal to
 `1.303577269034...`.
+
+# Day 11 - Password Expiration
+Day 11 involved taking some 8 char string password, incrementing it, checking if the new password meets some requirements, and if it doesn't continue to
+increment until those requirements are met. "Incrementing" here means taking the right-most character and transforming it from `a -> b` or `b -> c` ... `z -> a`.
+
+Repeatedly allocating strings is expensive and making large maps for converting characters is non-optimal. I solved this by storing the 8 char password as an
+array of 8 bytes and mutating that array in place, as this involved no allocation as the password is being generated.
