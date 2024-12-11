@@ -92,9 +92,9 @@ impl Password {
     }
 }
 
-struct Day10;
+struct Day11;
 
-impl Problem for Day10 {
+impl Problem for Day11 {
     type Input = Vec<String>;
     type PartOne = String;
     type PartTwo = String;
@@ -114,5 +114,5 @@ impl Problem for Day10 {
 }
 
 fn main() {
-    solve_main::<Day10>();
+    solve_main::<Day11>();
 }
