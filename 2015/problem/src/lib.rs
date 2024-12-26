@@ -12,9 +12,6 @@ use std::{
 
 // TODO: This should probably be moved out of the year folder (2015) since it is shared across all AoC stuff
 
-// TODO: I added a lot of structs and fluff impls for the Grid type, should maybe move most of this to a new file as it is cluttering this one
-//       and making it difficult to read
-
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct Coord<T = usize> {
     pub x: T,
@@ -51,7 +48,11 @@ pub enum Direction {
     Up,
     Left,
     Down,
-    Right
+    Right,
+    UpperLeft,
+    UpperRight,
+    LowerLeft,
+    LowerRight,
 }
 
 impl Direction {
@@ -75,6 +76,7 @@ impl Neighbor {
     }
 }
 
+#[derive(Clone)]
 pub struct Grid<T> {
     pub map: HashMap<Coord, T>,
     pub height: usize,
@@ -94,51 +96,102 @@ impl<T: Display> Grid<T> {
         }
         Self { map, height, width }
     }
+    // fn get_neighbors_with_values<'a >(grid: &'a Grid<char>, coord: &Coord) -> Vec<&'a char> {
+    //     grid
+    //     .neighbors(coord, false)
+    //     .iter()
+    //     .filter(|x| x.is_some())
+    //     .map(|x| {
+    //         grid.map.get(&x.unwrap().coord).unwrap()
+    //     })
+    //     .collect()
+    // }
     pub fn neighbors(&self, current_coord: &Coord, only_immediate: bool) -> Vec<Option<Neighbor>> {
         let mut neighbors: Vec<Option<Neighbor>> = Vec::new();
-        // If only_immediate is true, we only want the neighbors above, below, left, and right of current_coord
-        match only_immediate {
-            true => {
-                // Check up
-                if current_coord.y > 0 {
-                    let up_coord = Coord::new(current_coord.x, current_coord.y - 1);
-                    match self.map.get(&up_coord) {
-                        Some(_) => neighbors.push(Some(Neighbor::new(up_coord, Direction::Up))),
-                        None => neighbors.push(None)
-                    }
-                }
-                else {
-                    neighbors.push(None)
-                }
-                // Check down
-                let down_coord = Coord::new(current_coord.x, current_coord.y + 1);
-                match self.map.get(&down_coord) {
-                    Some(_) => neighbors.push(Some(Neighbor::new(down_coord, Direction::Down))),
-                    None => neighbors.push(None)
-                }
-                // Check left
-                if current_coord.x > 0 {
-                    let left_coord = Coord::new(current_coord.x - 1, current_coord.y);
-                    match self.map.get(&left_coord) {
-                        Some(_) => neighbors.push(Some(Neighbor::new(left_coord, Direction::Left))),
-                        None => neighbors.push(None)
-                    }
-                }
-                else {
-                    neighbors.push(None)
-                }
-                // Check right
-                let right_coord = Coord::new(current_coord.x + 1, current_coord.y);
-                match self.map.get(&right_coord) {
-                    Some(_) => neighbors.push(Some(Neighbor::new(right_coord, Direction::Right))),
-                    None => neighbors.push(None)
-                }
-            },
-            // If only_immediate is false, we want all 8 neighbors around our coord in the grid
-            false => {
-                unimplemented!("Have not implemented this yet");
+
+        // Check up
+        if current_coord.y > 0 {
+            let up_coord = Coord::new(current_coord.x, current_coord.y - 1);
+            match self.map.get(&up_coord) {
+                Some(_) => neighbors.push(Some(Neighbor::new(up_coord, Direction::Up))),
+                None => neighbors.push(None)
             }
         }
+        else {
+            neighbors.push(None)
+        }
+
+        // Check down
+        let down_coord = Coord::new(current_coord.x, current_coord.y + 1);
+        match self.map.get(&down_coord) {
+            Some(_) => neighbors.push(Some(Neighbor::new(down_coord, Direction::Down))),
+            None => neighbors.push(None)
+        }
+
+        // Check left
+        if current_coord.x > 0 {
+            let left_coord = Coord::new(current_coord.x - 1, current_coord.y);
+            match self.map.get(&left_coord) {
+                Some(_) => neighbors.push(Some(Neighbor::new(left_coord, Direction::Left))),
+                None => neighbors.push(None)
+            }
+        }
+        else {
+            neighbors.push(None)
+        }
+
+        // Check right
+        let right_coord = Coord::new(current_coord.x + 1, current_coord.y);
+        match self.map.get(&right_coord) {
+            Some(_) => neighbors.push(Some(Neighbor::new(right_coord, Direction::Right))),
+            None => neighbors.push(None)
+        }
+
+        if !only_immediate {
+            // Check upper left
+            if current_coord.y > 0 && current_coord.x > 0 {
+                let upper_left_coord = Coord::new(current_coord.x - 1, current_coord.y - 1);
+                match self.map.get(&upper_left_coord) {
+                    Some(_) => neighbors.push(Some(Neighbor::new(upper_left_coord, Direction::UpperLeft))),
+                    None => neighbors.push(None)
+                }
+            }
+            else {
+                neighbors.push(None)
+            }
+
+            // Check upper right
+            if current_coord.y > 0 {
+                let upper_right_coord = Coord::new(current_coord.x + 1, current_coord.y - 1);
+                match self.map.get(&upper_right_coord) {
+                    Some(_) => neighbors.push(Some(Neighbor::new(upper_right_coord, Direction::UpperRight))),
+                    None => neighbors.push(None)
+                }
+            }
+            else {
+                neighbors.push(None)
+            }
+
+            // Check lower left
+            if current_coord.x > 0 {
+                let lower_left_coord = Coord::new(current_coord.x - 1, current_coord.y + 1);
+                match self.map.get(&lower_left_coord) {
+                    Some(_) => neighbors.push(Some(Neighbor::new(lower_left_coord, Direction::LowerLeft))),
+                    None => neighbors.push(None)
+                }
+            }
+            else {
+                neighbors.push(None)
+            }
+
+            // Check lower right
+            let lower_right_coord = Coord::new(current_coord.x + 1, current_coord.y + 1);
+            match self.map.get(&lower_right_coord) {
+                Some(_) => neighbors.push(Some(Neighbor::new(lower_right_coord, Direction::LowerRight))),
+                None => neighbors.push(None)
+            }
+        }
+
         neighbors
     }
     pub fn debug_print_coord_path(&self, coords: &Vec<Coord>) {

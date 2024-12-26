@@ -7,6 +7,12 @@ fn parse_input(input: &Vec<String>) -> Vec<usize> {
     ret
 }
 
+
+// Memoize - key to the cache can be a tuple of (current_container_index, desire_size_remaining)
+// PROBLEM - this makes part 2 difficult, as memoization throws away the sets, we won't have an actual list of
+//           all combinations. Might need to make a struct to handle memoizing and calculating how many sets there
+//           would be for each length
+
 // we can think of `containers` as a sub_array trying to get to desired_size, and break this down into
 // a smaller subarray with a smaller size
 // [20, 15, 10, 5, 5] and container size of 25, after taking out the 20, can be broken down into
@@ -26,6 +32,7 @@ fn get_container_options(containers: &[usize], desired_size: usize) -> Vec<Vec<u
                 continue;
             }
             let sub_solution = get_container_options(&containers[i + 1..], desired_size - n);
+            // sub_solution can be cached with the key (i, desired_size - n)
             let mut sub_solution_new = Vec::new();
             for mut thing in sub_solution {
                 thing.push(n);
