@@ -4,6 +4,7 @@ use problem::{solve_main, Problem};
 
 #[derive(Debug)]
 struct Ingredient {
+    #[allow(dead_code)]
     name: String,
     capacity: isize,
     durability: isize,
