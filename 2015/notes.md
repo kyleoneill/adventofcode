@@ -55,3 +55,49 @@ increment until those requirements are met. "Incrementing" here means taking the
 
 Repeatedly allocating strings is expensive and making large maps for converting characters is non-optimal. I solved this by storing the 8 char password as an
 array of 8 bytes and mutating that array in place, as this involved no allocation as the password is being generated.
+
+# Day 19 - Medicine for Rudolph
+This explanation is for part 2 and was discovered by Reddit user askalski
+
+## Key
+- `X` => Any element which is not "Rn", "Ar", or "Y"
+- `(` => "Rn"
+- `,` => "Y"
+- `)` => "Ar"
+
+## First Insight
+There are only two types of productions
+1. `e => XX` and `X => XX`
+2. `X => X(X) | X(X,X) | X(X,X,X)`
+
+## Second Insight
+Whenever you have the first production, you can apply the transformation to reduce the molecule length
+by 1. This is because you are turning two elements into one element.
+
+Whenever you have the second production, you can apply the transformation to reduce the molecule length
+by 3, 5, or 7. Ex, in the case of the third version of the second production you are converting 4 `X`, 2 `,`,
+1 `(`, and 1 `)` into an `X`, which is a reduction of 8 -> 1 or reducing by 7.
+
+## Third Insight
+Repeatedly applying the first production, `X => XX`, until you reach a single token takes `count(X) - 1` steps.
+
+Ex, `XXXXX` => `XXXX` => `XXX` => `XX` => `X` is 4 steps.
+
+Applying `X => (X)` is similar to `X => XX` except you get the parenthesis characters for free. This can be expressed
+as `count(X) - count("(" | ")") - 1`.
+
+Each `,` reduces the length by 2, as a `,` is always followed by a `X`.
+
+This makes the formula:
+
+`count(X) - count("(" | ")") - 2*count(",") - 1`
+
+Or, in a more easy format,
+
+```
+T = Total element count
+X = Total count of Ar and Rn
+Y = Total count of Y
+
+T - X - 2Y - 1
+```

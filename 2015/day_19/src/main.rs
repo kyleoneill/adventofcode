@@ -58,7 +58,7 @@ impl<'a> Compound<'a> {
         molecules
     }
 
-    fn count_molecules(&self) -> HashMap<String, usize> {
+    fn count_elements(&self) -> HashMap<String, usize> {
         let mut index = 0;
         let mut map: HashMap<String, usize> = HashMap::new();
         let slice = self.compound.as_str();
@@ -116,7 +116,9 @@ impl Problem for Day19 {
         //  x = Count of Rn and Ar
         //  y = Count of Y
 
-        let element_counts = compound.count_molecules();
+        // See 2015 notes.md for an explanation
+
+        let element_counts = compound.count_elements();
         let total_elements: usize = element_counts.values().into_iter().sum();
         let x_elements: usize = {
             let rn_count = element_counts.get("Rn").unwrap();
