@@ -83,7 +83,7 @@ Repeatedly applying the first production, `X => XX`, until you reach a single to
 
 Ex, `XXXXX` => `XXXX` => `XXX` => `XX` => `X` is 4 steps.
 
-Applying `X => (X)` is similar to `X => XX` except you get the parenthesis characters for free. This can be expressed
+Applying `X => X(X)` is similar to `X => XX` except you get the parenthesis characters for free. This can be expressed
 as `count(X) - count("(" | ")") - 1`.
 
 Each `,` reduces the length by 2, as a `,` is always followed by a `X`.
